@@ -3,12 +3,48 @@ kind: Template
 metadata:
   name: mlz-complex-template
 spec:
-  type: service
-  # This is the name of the component that will be created when the template is used.
+  type: service  # Define the type of component to be created
   componentName: mlz-complex-component
-
-  # This is a list of input variables that the template will need.
-  inputVariables:
+  
+  # Define the steps to be executed when the template is used
+  steps:
+    - id: create-repo
+      name: Create Repository
+      action: create-repository
+      input:
+        repository: ${{ parameters.repository }}
+        description: ${{ parameters.description }}
+    - id: clone-repo
+      name: Clone Repository
+      action: git-clone
+      input:
+        url: ${{ steps.create-repo.output.url }}
+    - id: create-branch
+      name: Create Component Branch
+      action: git-create-branch
+      input:
+        repository: ${{ steps.clone-repo.output.path }}
+        branchName: ${{ parameters.name }}
+    - id: install-deps
+      name: Install Dependencies
+      action: npm-install
+      input:
+        directory: ${{ steps.clone-repo.output.path }}
+    - id: build-component
+      name: Build Component
+      action: npm-run
+      input:
+        directory: ${{ steps.clone-repo.output.path }}
+        script: build
+    - id: publish-component
+      name: Publish Component
+      action: git-push
+      input:
+        repository: ${{ steps.clone-repo.output.path }}
+        branchName: ${{ parameters.name }}
+  
+  # Define the input parameters required by the template
+  parameters:
     - name: name
       type: string
       description: The name of the component.
@@ -21,45 +57,3 @@ spec:
     - name: repository
       type: string
       description: The repository where the component will be created.
-
-  # This is a list of actions that will be executed when the template is used.
-  actions:
-    # This action will create a new repository for the component.
-    - name: create-repository
-      type: create-repository
-      inputs:
-        repository: ${{ inputs.repository }}
-        description: ${{ inputs.description }}
-
-    # This action will clone the repository to the local machine.
-    - name: clone-repository
-      type: git-clone
-      inputs:
-        url: ${{ outputs.create-repository.url }}
-
-    # This action will create a new branch in the repository for the component.
-    - name: create-component-branch
-      type: git-create-branch
-      inputs:
-        repository: ${{ outputs.clone-repository.path }}
-        branchName: ${{ inputs.name }}
-
-    # This action will install the dependencies of the component.
-    - name: install-dependencies
-      type: npm-install
-      inputs:
-        directory: ${{ outputs.clone-repository.path }}
-
-    # This action will build the component.
-    - name: build-component
-      type: npm-run
-      inputs:
-        directory: ${{ outputs.clone-repository.path }}
-        script: build
-
-    # This action will publish the component to the repository.
-    - name: publish-component
-      type: git-push
-      inputs:
-        repository: ${{ outputs.clone-repository.path }}
-        branchName: ${{ inputs.name }}
