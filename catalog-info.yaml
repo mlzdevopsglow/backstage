@@ -7,7 +7,6 @@ metadata:
 spec:
   owner: backstage/techdocs-core
   type: service
-
   parameters:
     - title: A registration form
       description: A simple form example.
@@ -20,23 +19,23 @@ spec:
           type: string
           title: First name
           default: Chuck
-          ui:autofocus: true
-          ui:emptyValue: ''
-          ui:autocomplete: given-name
+          'ui:autofocus': true
+          'ui:emptyValue': ''
+          'ui:autocomplete': given-name
         lastName:
           type: string
           title: Last name
-          ui:emptyValue: ''
-          ui:autocomplete: family-name
+          'ui:emptyValue': ''
+          'ui:autocomplete': family-name
         nicknames:
           type: array
           items:
             type: string
-          ui:options:
+          'ui:options':
             orderable: false
         telephone:
           type: string
           title: Telephone
           minLength: 10
-          ui:options:
+          'ui:options':
             inputType: tel
