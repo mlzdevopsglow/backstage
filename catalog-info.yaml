@@ -1,41 +1,59 @@
 apiVersion: scaffolder.backstage.io/v1beta3
 kind: Template
 metadata:
-  name: v1beta3-demo
-  title: Test Action template
-  description: scaffolder v1beta3 template demo
+  name: mlz-complex-template
 spec:
-  owner: backstage/techdocs-core
-  type: service
+  type: service  # Define the type of component to be created
+  componentName: mlz-complex-component
+  
+  # Define the steps to be executed when the template is used
+  steps:
+    - id: create-repo
+      name: Create Repository
+      action: create-repository
+      input:
+        repository: ${{ parameters.repository }}
+        description: ${{ parameters.description }}
+    - id: clone-repo
+      name: Clone Repository
+      action: git-clone
+      input:
+        url: ${{ steps.create-repo.output.url }}
+    - id: create-branch
+      name: Create Component Branch
+      action: git-create-branch
+      input:
+        repository: ${{ steps.clone-repo.output.path }}
+        branchName: ${{ parameters.name }}
+    - id: install-deps
+      name: Install Dependencies
+      action: npm-install
+      input:
+        directory: ${{ steps.clone-repo.output.path }}
+    - id: build-component
+      name: Build Component
+      action: npm-run
+      input:
+        directory: ${{ steps.clone-repo.output.path }}
+        script: build
+    - id: publish-component
+      name: Publish Component
+      action: git-push
+      input:
+        repository: ${{ steps.clone-repo.output.path }}
+        branchName: ${{ parameters.name }}
+  
+  # Define the input parameters required by the template
   parameters:
-    - title: A registration form
-      description: A simple form example.
-      type: object
-      required:
-        - firstName
-        - lastName
-      properties:
-        firstName:
-          type: string
-          title: First name
-          default: Chuck
-          'ui:autofocus': true
-          'ui:emptyValue': ''
-          'ui:autocomplete': given-name
-        lastName:
-          type: string
-          title: Last name
-          'ui:emptyValue': ''
-          'ui:autocomplete': family-name
-        nicknames:
-          type: array
-          items:
-            type: string
-          'ui:options':
-            orderable: false
-        telephone:
-          type: string
-          title: Telephone
-          minLength: 10
-          'ui:options':
-            inputType: tel
+    - name: name
+      type: string
+      description: The name of the component.
+    - name: description
+      type: string
+      description: A description of the component.
+    - name: owner
+      type: string
+      description: The owner of the component.
+    - name: repository
+      type: string
+      description: The repository where the component will be created.
