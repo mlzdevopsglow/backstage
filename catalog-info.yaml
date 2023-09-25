@@ -3,6 +3,7 @@ kind: Template
 metadata:
   name: mlz-complex-template
 spec:
+  type: service
   # This is the name of the component that will be created when the template is used.
   componentName: mlz-complex-component
 
