@@ -1,15 +1,15 @@
 apiVersion: backstage.io/v1alpha1
 kind: Component
 metadata:
-  name: artist-web
+  name: backstage-mlz
   description: The place to be, for great artists
   labels:
     example.com/custom: custom_label_value
   annotations:
-    example.com/service-discovery: artistweb
+    example.com/service-discovery: mlzbackstage
     circleci.com/project-slug: github/example-org/artist-website
   tags:
-    - java
+    - python
   links:
     - url: https://admin.example-org.com
       title: Admin Dashboard
@@ -18,5 +18,5 @@ metadata:
 spec:
   type: website
   lifecycle: production
-  owner: artist-relations-team
+  owner: mlz-relations-team
   system: public-websites
