@@ -1,22 +1,64 @@
-apiVersion: backstage.io/v1alpha1
-kind: Component
+apiVersion: scaffolder.backstage.io/v1beta3
+kind: Template
 metadata:
-  name: backstage-mlz
-  description: The place to be, for great artists
-  labels:
-    example.com/custom: custom_label_value
-  annotations:
-    example.com/service-discovery: mlzbackstage
-    circleci.com/project-slug: github/example-org/artist-website
-  tags:
-    - python
-  links:
-    - url: https://admin.example-org.com
-      title: Admin Dashboard
-      icon: dashboard
-      type: admin-dashboard
+  name: mlz-complex-template
 spec:
-  type: website
-  lifecycle: production
-  owner: mlz-relations-team
-  system: public-websites
+  # This is the name of the component that will be created when the template is used.
+  componentName: mlz-complex-component
+
+  # This is a list of input variables that the template will need.
+  inputVariables:
+    - name: name
+      type: string
+      description: The name of the component.
+    - name: description
+      type: string
+      description: A description of the component.
+    - name: owner
+      type: string
+      description: The owner of the component.
+    - name: repository
+      type: string
+      description: The repository where the component will be created.
+
+  # This is a list of actions that will be executed when the template is used.
+  actions:
+    # This action will create a new repository for the component.
+    - name: create-repository
+      type: create-repository
+      inputs:
+        repository: ${{ inputs.repository }}
+        description: ${{ inputs.description }}
+
+    # This action will clone the repository to the local machine.
+    - name: clone-repository
+      type: git-clone
+      inputs:
+        url: ${{ outputs.create-repository.url }}
+
+    # This action will create a new branch in the repository for the component.
+    - name: create-component-branch
+      type: git-create-branch
+      inputs:
+        repository: ${{ outputs.clone-repository.path }}
+        branchName: ${{ inputs.name }}
+
+    # This action will install the dependencies of the component.
+    - name: install-dependencies
+      type: npm-install
+      inputs:
+        directory: ${{ outputs.clone-repository.path }}
+
+    # This action will build the component.
+    - name: build-component
+      type: npm-run
+      inputs:
+        directory: ${{ outputs.clone-repository.path }}
+        script: build
+
+    # This action will publish the component to the repository.
+    - name: publish-component
+      type: git-push
+      inputs:
+        repository: ${{ outputs.clone-repository.path }}
+        branchName: ${{ inputs.name }}
